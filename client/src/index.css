@@ -1,0 +1,195 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 47.4% 11.2%;
+    
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 47.4% 11.2%;
+    
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 47.4% 11.2%;
+    
+    --primary: 222.2 47.4% 50%;
+    --primary-foreground: 210 40% 98%;
+    
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    
+    --destructive: 0 100% 50%;
+    --destructive-foreground: 210 40% 98%;
+    
+    --ring: 215 20.2% 65.1%;
+    
+    --radius: 0.5rem;
+    
+    --sidebar-background: 222.2 47.4% 25.1%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 222.2 47.4% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 222.2 47.4% 30%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 222.2 47.4% 30%;
+    --sidebar-ring: 222.2 47.4% 50%;
+    
+    --chart-1: 222.2 47.4% 50%;
+    --chart-2: 291.2 47.4% 50%;
+    --chart-3: 180 47.4% 50%;
+    --chart-4: 0 47.4% 50%;
+    --chart-5: 60 47.4% 50%;
+  }
+  
+  .dark {
+    --background: 222.2 47.4% 11.2%;
+    --foreground: 210 40% 98%;
+    
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    
+    --popover: 222.2 47.4% 11.2%;
+    --popover-foreground: 210 40% 98%;
+    
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    
+    --card: 222.2 47.4% 11.2%;
+    --card-foreground: 210 40% 98%;
+    
+    --primary: 222.2 47.4% 50%;
+    --primary-foreground: 210 40% 98%;
+    
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 40% 98%;
+    
+    --ring: 217.2 32.6% 17.5%;
+    
+    --sidebar-background: 222.2 47.4% 11.2%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 222.2 47.4% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 222.2 47.4% 15%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 222.2 47.4% 15%;
+    --sidebar-ring: 222.2 47.4% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+  }
+}
+
+@font-face {
+  font-family: 'Segoe UI';
+  src: url('https://static2.sharepointonline.com/files/fabric/assets/fonts/segoeui-westeuropean/segoeui-regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Segoe UI';
+  src: url('https://static2.sharepointonline.com/files/fabric/assets/fonts/segoeui-westeuropean/segoeui-semibold.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Segoe UI';
+  src: url('https://static2.sharepointonline.com/files/fabric/assets/fonts/segoeui-westeuropean/segoeui-bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+}
+
+.font-segoe {
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.sidebar-icon {
+  position: relative;
+}
+
+.sidebar-icon.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 3px;
+  background-color: #464EB8;
+}
+
+.sidebar-icon.has-notification::after {
+  content: '';
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  height: 8px;
+  width: 8px;
+  border-radius: 50%;
+  background-color: #E74C3C;
+}
+
+.chat-message-container:last-child {
+  margin-bottom: 24px;
+}
+
+@media (max-width: 768px) {
+  .mobile-hidden {
+    display: none;
+  }
+}
+
+.bg-status-available {
+  background-color: #107C10;
+}
+
+.bg-status-busy {
+  background-color: #E74C3C;
+}
+
+.bg-status-away {
+  background-color: #FFB900;
+}
+
+.bg-status-offline {
+  background-color: #8A8886;
+}
+
+.text-status-available {
+  color: #107C10;
+}
+
+.text-status-busy {
+  color: #E74C3C;
+}
+
+.text-status-away {
+  color: #FFB900;
+}
+
+.text-status-offline {
+  color: #8A8886;
+}
