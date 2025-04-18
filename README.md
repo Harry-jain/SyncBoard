@@ -1,6 +1,14 @@
 # SyncBoard - Collaborative Team Management Application
 
-SyncBoard is a comprehensive team management application designed to streamline communication and project coordination, with enhanced user experience and interactive UI elements.
+## Introduction
+
+SyncBoard is a cutting-edge, full-stack collaborative team management platform built to transform how teams communicate, coordinate, and create together. Born out of the need for a unified workflow solution, SyncBoard combines project management capabilities with real-time communication features in a highly responsive and intuitive interface.
+
+The application addresses the common challenge of fragmented team collaboration by integrating multiple essential tools into a single cohesive platform. With SyncBoard, teams can manage projects, communicate in real-time, share files, schedule events, and even collaborate on code—all within one seamless environment. This integration eliminates the context-switching overhead that traditionally hampers team productivity.
+
+SyncBoard is architected with modern software development practices, utilizing a TypeScript-powered full-stack approach. The platform is designed for scalability, security, and performance, with emphasis on responsive design and accessibility. It supports both local development and production deployment options with comprehensive documentation for setup and customization.
+
+Whether you're a small startup team or a large enterprise organization, SyncBoard provides the flexibility and features needed to streamline your team's workflow and boost collective productivity.
 
 ## Features
 
@@ -12,6 +20,42 @@ SyncBoard is a comprehensive team management application designed to streamline 
 - Coding environment for collaborative development
 - Task management and tracking
 - Interactive UI with micro-interactions and animations
+
+## Technology Stack
+
+### Frontend
+- **React**: UI library for building component-based interfaces
+- **TypeScript**: For type-safe code throughout the application
+- **Vite**: Fast build tool and development server
+- **TanStack Router**: Type-safe routing solution
+- **Tailwind CSS**: Utility-first CSS framework for styling
+- **Radix UI**: Headless UI components for accessible design
+- **Framer Motion**: Animation library for smooth UI transitions
+- **Socket.IO Client**: Real-time bidirectional communication
+- **Axios**: HTTP client for API requests
+- **date-fns**: Date manipulation library
+- **React Query**: Data fetching and state management
+
+### Backend
+- **Node.js**: JavaScript runtime for the server
+- **Express**: Web framework for handling HTTP requests
+- **TypeScript**: Type-safe server-side code
+- **Passport.js**: Authentication middleware
+- **Socket.IO**: Real-time websocket communication
+- **Drizzle ORM**: Type-safe SQL query builder
+- **PostgreSQL**: Relational database for data persistence
+- **Supabase**: Platform for authentication and storage (optional for production)
+- **JSON Web Tokens (JWT)**: Secure authentication mechanism
+- **tsx**: TypeScript execution engine
+- **Zod**: TypeScript-first schema validation
+
+### DevOps & Tooling
+- **Docker**: Containerization (optional for deployment)
+- **ESLint**: Code quality and style enforcement
+- **Prettier**: Code formatting
+- **Vitest**: Testing framework
+- **GitHub Actions**: CI/CD automation (optional)
+- **dotenv**: Environment variable management
 
 ## Quick Start Guide
 
@@ -285,7 +329,3 @@ The application supports two authentication methods:
   ```bash
   npm run check
   ```
-
-## License
-
-MIT
