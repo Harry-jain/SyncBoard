@@ -223,6 +223,63 @@ export const calendarNotifications = pgTable("calendar_notifications", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Call history table
+export const callHistory = pgTable("call_history", {
+  id: serial("id").primaryKey(),
+  callerId: integer("caller_id").references(() => users.id).notNull(),
+  calleeId: integer("callee_id").references(() => users.id).notNull(),
+  callType: text("call_type").notNull(), // audio, video
+  status: text("status").notNull(), // ringing, ongoing, ended, missed
+  startTime: timestamp("start_time"),
+  endTime: timestamp("end_time"),
+  duration: integer("duration"), // in seconds
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Meetings table
+export const meetings = pgTable("meetings", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description"),
+  meetingId: text("meeting_id").notNull().unique(), // unique meeting identifier
+  hostId: integer("host_id").references(() => users.id).notNull(),
+  startTime: timestamp("start_time").notNull(),
+  endTime: timestamp("end_time"),
+  isScheduled: boolean("is_scheduled").default(false),
+  isRecurring: boolean("is_recurring").default(false),
+  recurrencePattern: text("recurrence_pattern"),
+  maxParticipants: integer("max_participants").default(100),
+  isRecording: boolean("is_recording").default(false),
+  recordingUrl: text("recording_url"),
+  status: text("status").default("scheduled").notNull(), // scheduled, ongoing, ended, cancelled
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Meeting participants table
+export const meetingParticipants = pgTable("meeting_participants", {
+  id: serial("id").primaryKey(),
+  meetingId: integer("meeting_id").references(() => meetings.id).notNull(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  role: text("role").default("participant").notNull(), // host, co-host, participant
+  joinedAt: timestamp("joined_at").defaultNow().notNull(),
+  leftAt: timestamp("left_at"),
+  isMuted: boolean("is_muted").default(false),
+  isVideoEnabled: boolean("is_video_enabled").default(true),
+  isScreenSharing: boolean("is_screen_sharing").default(false),
+});
+
+// Meeting recordings table
+export const meetingRecordings = pgTable("meeting_recordings", {
+  id: serial("id").primaryKey(),
+  meetingId: integer("meeting_id").references(() => meetings.id).notNull(),
+  recordingUrl: text("recording_url").notNull(),
+  duration: integer("duration").notNull(), // in seconds
+  fileSize: integer("file_size"), // in bytes
+  status: text("status").default("processing").notNull(), // processing, completed, failed
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Insert schemas
 export const insertInstitutionSchema = createInsertSchema(institutions).pick({
   name: true,
@@ -382,6 +439,53 @@ export const insertCalendarNotificationSchema = createInsertSchema(calendarNotif
   remindAt: true,
 });
 
+// Call history insert schemas
+export const insertCallHistorySchema = createInsertSchema(callHistory).pick({
+  callerId: true,
+  calleeId: true,
+  callType: true,
+  status: true,
+  startTime: true,
+  endTime: true,
+  duration: true,
+});
+
+// Meeting insert schemas
+export const insertMeetingSchema = createInsertSchema(meetings).pick({
+  title: true,
+  description: true,
+  meetingId: true,
+  hostId: true,
+  startTime: true,
+  endTime: true,
+  isScheduled: true,
+  isRecurring: true,
+  recurrencePattern: true,
+  maxParticipants: true,
+  isRecording: true,
+  recordingUrl: true,
+  status: true,
+});
+
+export const insertMeetingParticipantSchema = createInsertSchema(meetingParticipants).pick({
+  meetingId: true,
+  userId: true,
+  role: true,
+  joinedAt: true,
+  leftAt: true,
+  isMuted: true,
+  isVideoEnabled: true,
+  isScreenSharing: true,
+});
+
+export const insertMeetingRecordingSchema = createInsertSchema(meetingRecordings).pick({
+  meetingId: true,
+  recordingUrl: true,
+  duration: true,
+  fileSize: true,
+  status: true,
+});
+
 // Types
 export type InsertInstitution = z.infer<typeof insertInstitutionSchema>;
 export type Institution = typeof institutions.$inferSelect;
@@ -439,3 +543,15 @@ export type Holiday = typeof holidays.$inferSelect;
 
 export type InsertCalendarNotification = z.infer<typeof insertCalendarNotificationSchema>;
 export type CalendarNotification = typeof calendarNotifications.$inferSelect;
+
+export type InsertCallHistory = z.infer<typeof insertCallHistorySchema>;
+export type CallHistory = typeof callHistory.$inferSelect;
+
+export type InsertMeeting = z.infer<typeof insertMeetingSchema>;
+export type Meeting = typeof meetings.$inferSelect;
+
+export type InsertMeetingParticipant = z.infer<typeof insertMeetingParticipantSchema>;
+export type MeetingParticipant = typeof meetingParticipants.$inferSelect;
+
+export type InsertMeetingRecording = z.infer<typeof insertMeetingRecordingSchema>;
+export type MeetingRecording = typeof meetingRecordings.$inferSelect;
