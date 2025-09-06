@@ -67,7 +67,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (!userId) return;
           
           const targetUser = data.targetUserId;
-          const callId = Date.now(); // Simple unique ID
+          const callId = `call_${Date.now()}_${userId}`;
           
           activeCalls.set(callId, {
             id: callId,
@@ -343,6 +343,119 @@ export async function registerRoutes(app: Express): Promise<Server> {
               finished: true
             }));
           }, 2000);
+        }
+        // WebRTC Signaling
+        else if (data.type === 'webrtc_signal') {
+          if (!userId) return;
+          
+          const targetWs = connectedClients.get(data.targetUserId);
+          if (targetWs && targetWs.readyState === WebSocket.OPEN) {
+            targetWs.send(JSON.stringify({
+              type: 'webrtc_signal',
+              fromUserId: userId,
+              signal: data.signal
+            }));
+          }
+        }
+        else if (data.type === 'webrtc_offer') {
+          if (!userId) return;
+          
+          const targetWs = connectedClients.get(data.targetUserId);
+          if (targetWs && targetWs.readyState === WebSocket.OPEN) {
+            targetWs.send(JSON.stringify({
+              type: 'webrtc_offer',
+              fromUserId: userId,
+              offer: data.offer
+            }));
+          }
+        }
+        else if (data.type === 'webrtc_answer') {
+          if (!userId) return;
+          
+          const targetWs = connectedClients.get(data.targetUserId);
+          if (targetWs && targetWs.readyState === WebSocket.OPEN) {
+            targetWs.send(JSON.stringify({
+              type: 'webrtc_answer',
+              fromUserId: userId,
+              answer: data.answer
+            }));
+          }
+        }
+        else if (data.type === 'webrtc_ice_candidate') {
+          if (!userId) return;
+          
+          const targetWs = connectedClients.get(data.targetUserId);
+          if (targetWs && targetWs.readyState === WebSocket.OPEN) {
+            targetWs.send(JSON.stringify({
+              type: 'webrtc_ice_candidate',
+              fromUserId: userId,
+              candidate: data.candidate
+            }));
+          }
+        }
+        // Media controls
+        else if (data.type === 'media_toggle') {
+          if (!userId) return;
+          
+          // Broadcast to all participants in the call
+          const call = Array.from(activeCalls.values()).find(c => 
+            c.caller === userId || c.target === userId
+          );
+          
+          if (call) {
+            const otherUserId = call.caller === userId ? call.target : call.caller;
+            const otherWs = connectedClients.get(otherUserId);
+            
+            if (otherWs && otherWs.readyState === WebSocket.OPEN) {
+              otherWs.send(JSON.stringify({
+                type: 'media_toggle',
+                userId: userId,
+                mediaType: data.mediaType,
+                enabled: data.enabled
+              }));
+            }
+          }
+        }
+        else if (data.type === 'screen_share_start') {
+          if (!userId) return;
+          
+          // Broadcast to all participants in the call
+          const call = Array.from(activeCalls.values()).find(c => 
+            c.caller === userId || c.target === userId
+          );
+          
+          if (call) {
+            const otherUserId = call.caller === userId ? call.target : call.caller;
+            const otherWs = connectedClients.get(otherUserId);
+            
+            if (otherWs && otherWs.readyState === WebSocket.OPEN) {
+              otherWs.send(JSON.stringify({
+                type: 'screen_share_start',
+                userId: userId,
+                stream: data.stream
+              }));
+            }
+          }
+        }
+        else if (data.type === 'screen_share_stop') {
+          if (!userId) return;
+          
+          // Broadcast to all participants in the call
+          const call = Array.from(activeCalls.values()).find(c => 
+            c.caller === userId || c.target === userId
+          );
+          
+          if (call) {
+            const otherUserId = call.caller === userId ? call.target : call.caller;
+            const otherWs = connectedClients.get(otherUserId);
+            
+            if (otherWs && otherWs.readyState === WebSocket.OPEN) {
+              otherWs.send(JSON.stringify({
+                type: 'screen_share_stop',
+                userId: userId
+              }));
+            }
+          }
         }
       } catch (err) {
         console.error('WebSocket message error:', err);

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
+import { useCall } from '@/hooks/use-call';
 import {
   Phone,
   VideoIcon,
@@ -53,6 +54,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import CallInterface from '@/components/call/CallInterface';
 import WebSocketClient, { CallType, CallDirection, CallStatus } from '@/lib/websocket-client';
 
 // Type definitions
@@ -109,12 +111,12 @@ type ActiveCall = {
 export default function Calls() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const callManager = useCall();
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeCall, setActiveCall] = useState<ActiveCall | null>(null);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [showNewMeetingDialog, setShowNewMeetingDialog] = useState(false);
-  const localVideoRef = useRef<HTMLVideoElement>(null);
-  const remoteVideoRef = useRef<HTMLVideoElement>(null);
+  const [showCallInterface, setShowCallInterface] = useState(false);
+  const [currentCallId, setCurrentCallId] = useState<string | null>(null);
   
   // Fetch contacts
   const { data: contacts, isLoading: isLoadingContacts } = useQuery({
@@ -229,106 +231,52 @@ export default function Calls() {
   }, [activeCall, toast]);
   
   // Handle starting a call
-  const startCall = (contact: Contact, callType: 'audio' | 'video') => {
-    // Create active call object
-    const newCall: ActiveCall = {
-      id: Date.now(), // This would normally come from the server
-      user: contact,
-      type: callType,
-      status: 'ringing',
-      startTime: new Date(),
-      direction: 'outgoing',
-      videoEnabled: callType === 'video',
-      audioEnabled: true
-    };
-    
-    setActiveCall(newCall);
-    
-    // Send call request via WebSocket
-    WebSocketClient.sendMessage('call_request', {
-      targetUserId: contact.id,
-      callType
-    });
-    
-    // In a real app, this would trigger WebRTC connection setup
-    // For now, we'll simulate the call being answered after 2 seconds
-    setTimeout(() => {
-      if (activeCall && activeCall.id === newCall.id) {
-        setActiveCall({
-          ...newCall,
-          status: 'ongoing'
-        });
-      }
-    }, 2000);
+  const startCall = async (contact: Contact, callType: 'audio' | 'video') => {
+    try {
+      const callId = `call_${Date.now()}_${contact.id}`;
+      setCurrentCallId(callId);
+      setShowCallInterface(true);
+      
+      await callManager.startCall(contact.id.toString(), {
+        audio: true,
+        video: callType === 'video'
+      });
+    } catch (error) {
+      console.error('Failed to start call:', error);
+    }
   };
   
   // Handle accepting a call
-  const acceptCall = () => {
-    if (!activeCall) return;
-    
-    // Update call status
-    setActiveCall({
-      ...activeCall,
-      status: 'ongoing',
-      startTime: new Date()
-    });
-    
-    // Send call accepted message via WebSocket
-    WebSocketClient.sendMessage('call_accept', {
-      callId: activeCall.id
-    });
-    
-    // In a real app, this would trigger WebRTC connection setup
+  const acceptCall = async (callId: string) => {
+    try {
+      setCurrentCallId(callId);
+      setShowCallInterface(true);
+      await callManager.acceptCall(callId);
+    } catch (error) {
+      console.error('Failed to accept call:', error);
+    }
   };
   
   // Handle rejecting a call
-  const rejectCall = () => {
-    if (!activeCall) return;
-    
-    // Send call rejected message via WebSocket
-    WebSocketClient.sendMessage('call_decline', {
-      callId: activeCall.id
-    });
-    
-    // Clear active call
-    setActiveCall(null);
+  const rejectCall = async () => {
+    try {
+      await callManager.endCall();
+      setShowCallInterface(false);
+      setCurrentCallId(null);
+    } catch (error) {
+      console.error('Failed to reject call:', error);
+    }
   };
   
   // Handle ending a call
-  const endCall = () => {
-    if (!activeCall) return;
-    
-    // Send call ended message via WebSocket
-    WebSocketClient.sendMessage('call_end', {
-      callId: activeCall.id
-    });
-    
-    // Clear active call
-    setActiveCall(null);
-  };
-  
-  // Toggle audio
-  const toggleAudio = () => {
-    if (!activeCall) return;
-    
-    setActiveCall({
-      ...activeCall,
-      audioEnabled: !activeCall.audioEnabled
-    });
-    
-    // In a real app, this would mute/unmute the WebRTC audio track
-  };
-  
-  // Toggle video
-  const toggleVideo = () => {
-    if (!activeCall) return;
-    
-    setActiveCall({
-      ...activeCall,
-      videoEnabled: !activeCall.videoEnabled
-    });
-    
-    // In a real app, this would enable/disable the WebRTC video track
+  const endCall = async () => {
+    try {
+      await callManager.endCall();
+      setShowCallInterface(false);
+      setCurrentCallId(null);
+    } catch (error) {
+      console.error('Failed to end call:', error);
+    }
   };
   
   // Format call duration
@@ -537,121 +485,22 @@ export default function Calls() {
     </ScrollArea>
   );
   
-  // Render active call UI
-  const renderActiveCall = () => {
-    if (!activeCall) return null;
+  // Render call interface
+  const renderCallInterface = () => {
+    if (!showCallInterface || !callManager.isInCall) return null;
     
     return (
-      <div className="fixed inset-0 bg-background z-50 flex flex-col">
-        <div className="p-4 flex justify-between items-center border-b">
-          <div className="flex items-center space-x-3">
-            <Avatar>
-              <AvatarImage src={activeCall.user.avatar} />
-              <AvatarFallback>{activeCall.user.name.charAt(0)}</AvatarFallback>
-            </Avatar>
-            <div>
-              <h3 className="font-medium">{activeCall.user.name}</h3>
-              <p className="text-sm text-muted-foreground">
-                {activeCall.status === 'ringing' ? 'Ringing...' : 
-                  activeCall.startTime ? formatCallDuration(activeCall.startTime) : ''}
-              </p>
-            </div>
-          </div>
-          <Button 
-            size="icon" 
-            variant="ghost" 
-            onClick={() => setActiveCall(null)}
-          >
-            <X className="h-5 w-5" />
-          </Button>
-        </div>
-        
-        <div className="flex-1 flex items-center justify-center bg-muted">
-          {activeCall.type === 'video' && activeCall.videoEnabled && (
-            <div className="relative w-full h-full">
-              {/* Remote video would be shown here */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <Avatar className="h-32 w-32">
-                  <AvatarImage src={activeCall.user.avatar} />
-                  <AvatarFallback className="text-4xl">{activeCall.user.name.charAt(0)}</AvatarFallback>
-                </Avatar>
-              </div>
-              
-              {/* Local video (picture-in-picture) */}
-              <div className="absolute bottom-4 right-4 w-48 h-36 bg-background border rounded-md overflow-hidden">
-                {/* This would be your local video feed */}
-                <div className="flex items-center justify-center h-full">
-                  <Avatar className="h-16 w-16">
-                    <AvatarImage src={user?.avatar} />
-                    <AvatarFallback className="text-2xl">{user?.name.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                </div>
-              </div>
-            </div>
-          )}
-          
-          {(activeCall.type === 'audio' || !activeCall.videoEnabled) && (
-            <Avatar className="h-32 w-32">
-              <AvatarImage src={activeCall.user.avatar} />
-              <AvatarFallback className="text-4xl">{activeCall.user.name.charAt(0)}</AvatarFallback>
-            </Avatar>
-          )}
-        </div>
-        
-        <div className="p-6 flex justify-center items-center space-x-4 border-t">
-          {activeCall.status === 'ringing' && activeCall.direction === 'incoming' ? (
-            <>
-              <Button 
-                size="icon" 
-                variant="destructive" 
-                className="h-12 w-12 rounded-full"
-                onClick={rejectCall}
-              >
-                <PhoneOff className="h-6 w-6" />
-              </Button>
-              <Button 
-                size="icon" 
-                variant="default" 
-                className="h-12 w-12 rounded-full bg-green-500 hover:bg-green-600"
-                onClick={acceptCall}
-              >
-                <PhoneCall className="h-6 w-6" />
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button 
-                size="icon" 
-                variant={activeCall.audioEnabled ? "outline" : "secondary"}
-                className="h-12 w-12 rounded-full"
-                onClick={toggleAudio}
-              >
-                {activeCall.audioEnabled ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
-              </Button>
-              
-              {activeCall.type === 'video' && (
-                <Button 
-                  size="icon" 
-                  variant={activeCall.videoEnabled ? "outline" : "secondary"}
-                  className="h-12 w-12 rounded-full"
-                  onClick={toggleVideo}
-                >
-                  {activeCall.videoEnabled ? <Video className="h-5 w-5" /> : <VideoOff className="h-5 w-5" />}
-                </Button>
-              )}
-              
-              <Button 
-                size="icon" 
-                variant="destructive" 
-                className="h-12 w-12 rounded-full"
-                onClick={endCall}
-              >
-                <PhoneOff className="h-6 w-6" />
-              </Button>
-            </>
-          )}
-        </div>
-      </div>
+      <CallInterface
+        callId={currentCallId || ''}
+        participants={callManager.participants}
+        isHost={true} // In a real app, this would be determined by the call state
+        onEndCall={endCall}
+        onToggleMute={callManager.toggleMute}
+        onToggleVideo={callManager.toggleVideo}
+        onToggleScreenShare={callManager.toggleScreenShare}
+        onToggleParticipantMute={callManager.toggleParticipantMute}
+        onRemoveParticipant={callManager.removeParticipant}
+      />
     );
   };
   
@@ -872,7 +721,7 @@ export default function Calls() {
       </div>
       
       {selectedContact && renderContactDetails()}
-      {activeCall && renderActiveCall()}
+      {renderCallInterface()}
       {renderNewMeetingDialog()}
     </div>
   );
