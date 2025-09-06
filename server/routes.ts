@@ -15,10 +15,14 @@ import {
   GameAccess
 } from "@shared/schema";
 import { setupAuth } from "./auth";
+import classroomRoutes from "./routes/classroom";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication
   const { isAuthenticated, hasRole } = setupAuth(app);
+  
+  // Register classroom routes
+  app.use('/api/classroom', classroomRoutes);
   
   const httpServer = createServer(app);
   
