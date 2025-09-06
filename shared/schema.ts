@@ -435,6 +435,163 @@ export const loadBalancerConfig = pgTable("load_balancer_config", {
   lastUpdated: timestamp("last_updated").defaultNow().notNull(),
 });
 
+// Authentication providers table
+export const authProviders = pgTable("auth_providers", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  provider: text("provider").notNull(), // google, microsoft, apple, phone, email
+  providerId: text("provider_id").notNull(), // external provider user ID
+  email: text("email"),
+  phoneNumber: text("phone_number"),
+  isVerified: boolean("is_verified").default(false),
+  isPrimary: boolean("is_primary").default(false),
+  metadata: jsonb("metadata"), // provider-specific data
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  lastUsed: timestamp("last_used"),
+});
+
+// Two-factor authentication table
+export const twoFactorAuth = pgTable("two_factor_auth", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  method: text("method").notNull(), // email, sms, authenticator
+  secret: text("secret"), // for authenticator apps
+  isEnabled: boolean("is_enabled").default(false),
+  backupCodes: jsonb("backup_codes"), // array of backup codes
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  lastUsed: timestamp("last_used"),
+});
+
+// Email verification table
+export const emailVerifications = pgTable("email_verifications", {
+  id: serial("id").primaryKey(),
+  email: text("email").notNull(),
+  token: text("token").notNull().unique(),
+  type: text("type").notNull(), // signup, password_reset, email_change
+  expiresAt: timestamp("expires_at").notNull(),
+  isUsed: boolean("is_used").default(false),
+  userId: integer("user_id").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Phone verification table
+export const phoneVerifications = pgTable("phone_verifications", {
+  id: serial("id").primaryKey(),
+  phoneNumber: text("phone_number").notNull(),
+  code: text("code").notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  isUsed: boolean("is_used").default(false),
+  attempts: integer("attempts").default(0),
+  userId: integer("user_id").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Drive storage table
+export const driveStorage = pgTable("drive_storage", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  totalSpace: bigint("total_space").default(5368709120), // 5GB in bytes
+  usedSpace: bigint("used_space").default(0),
+  maxSpace: bigint("max_space").default(5368709120), // 5GB in bytes
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Drive files table
+export const driveFiles = pgTable("drive_files", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  name: text("name").notNull(),
+  type: text("type").notNull(), // file, folder
+  mimeType: text("mime_type"),
+  size: bigint("size").default(0),
+  parentId: integer("parent_id").references(() => driveFiles.id), // for folder structure
+  path: text("path").notNull(), // full path from root
+  isPublic: boolean("is_public").default(false),
+  isShared: boolean("is_shared").default(false),
+  shareToken: text("share_token").unique(),
+  version: integer("version").default(1),
+  checksum: text("checksum"), // for file integrity
+  metadata: jsonb("metadata"), // file-specific metadata
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  lastAccessed: timestamp("last_accessed"),
+});
+
+// Office documents table (extends drive files)
+export const officeDocuments = pgTable("office_documents", {
+  id: serial("id").primaryKey(),
+  fileId: integer("file_id").references(() => driveFiles.id).notNull(),
+  documentType: text("document_type").notNull(), // slides, excel, word, forms, notebook
+  title: text("title").notNull(),
+  content: jsonb("content"), // document content structure
+  settings: jsonb("settings"), // document settings
+  collaborators: jsonb("collaborators"), // array of user IDs
+  permissions: jsonb("permissions"), // access permissions
+  isTemplate: boolean("is_template").default(false),
+  templateId: integer("template_id").references(() => officeDocuments.id),
+  version: integer("version").default(1),
+  lastEditedBy: integer("last_edited_by").references(() => users.id),
+  lastEditedAt: timestamp("last_edited_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Document versions table
+export const documentVersions = pgTable("document_versions", {
+  id: serial("id").primaryKey(),
+  documentId: integer("document_id").references(() => officeDocuments.id).notNull(),
+  version: integer("version").notNull(),
+  content: jsonb("content").notNull(),
+  changes: jsonb("changes"), // what changed in this version
+  editedBy: integer("edited_by").references(() => users.id).notNull(),
+  editedAt: timestamp("edited_at").defaultNow().notNull(),
+  comment: text("comment"), // version comment
+});
+
+// Document comments table
+export const documentComments = pgTable("document_comments", {
+  id: serial("id").primaryKey(),
+  documentId: integer("document_id").references(() => officeDocuments.id).notNull(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  content: text("content").notNull(),
+  position: jsonb("position"), // position in document
+  parentId: integer("parent_id").references(() => documentComments.id), // for replies
+  isResolved: boolean("is_resolved").default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Document sharing table
+export const documentSharing = pgTable("document_sharing", {
+  id: serial("id").primaryKey(),
+  documentId: integer("document_id").references(() => officeDocuments.id).notNull(),
+  sharedWith: integer("shared_with").references(() => users.id), // null for public sharing
+  permission: text("permission").notNull(), // view, edit, comment, admin
+  shareToken: text("share_token").unique(),
+  isPublic: boolean("is_public").default(false),
+  expiresAt: timestamp("expires_at"),
+  createdBy: integer("created_by").references(() => users.id).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Document templates table
+export const documentTemplates = pgTable("document_templates", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  documentType: text("document_type").notNull(),
+  category: text("category"),
+  thumbnail: text("thumbnail"),
+  content: jsonb("content").notNull(),
+  settings: jsonb("settings"),
+  isPublic: boolean("is_public").default(false),
+  isOfficial: boolean("is_official").default(false),
+  createdBy: integer("created_by").references(() => users.id),
+  downloadCount: integer("download_count").default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Insert schemas
 export const insertInstitutionSchema = createInsertSchema(institutions).pick({
   name: true,
@@ -754,6 +911,120 @@ export const insertLoadBalancerConfigSchema = createInsertSchema(loadBalancerCon
   isHealthy: true,
 });
 
+// Authentication insert schemas
+export const insertAuthProviderSchema = createInsertSchema(authProviders).pick({
+  userId: true,
+  provider: true,
+  providerId: true,
+  email: true,
+  phoneNumber: true,
+  isVerified: true,
+  isPrimary: true,
+  metadata: true,
+});
+
+export const insertTwoFactorAuthSchema = createInsertSchema(twoFactorAuth).pick({
+  userId: true,
+  method: true,
+  secret: true,
+  isEnabled: true,
+  backupCodes: true,
+});
+
+export const insertEmailVerificationSchema = createInsertSchema(emailVerifications).pick({
+  email: true,
+  token: true,
+  type: true,
+  expiresAt: true,
+  userId: true,
+});
+
+export const insertPhoneVerificationSchema = createInsertSchema(phoneVerifications).pick({
+  phoneNumber: true,
+  code: true,
+  expiresAt: true,
+  userId: true,
+});
+
+// Drive storage insert schemas
+export const insertDriveStorageSchema = createInsertSchema(driveStorage).pick({
+  userId: true,
+  totalSpace: true,
+  usedSpace: true,
+  maxSpace: true,
+});
+
+export const insertDriveFileSchema = createInsertSchema(driveFiles).pick({
+  userId: true,
+  name: true,
+  type: true,
+  mimeType: true,
+  size: true,
+  parentId: true,
+  path: true,
+  isPublic: true,
+  isShared: true,
+  shareToken: true,
+  version: true,
+  checksum: true,
+  metadata: true,
+});
+
+export const insertOfficeDocumentSchema = createInsertSchema(officeDocuments).pick({
+  fileId: true,
+  documentType: true,
+  title: true,
+  content: true,
+  settings: true,
+  collaborators: true,
+  permissions: true,
+  isTemplate: true,
+  templateId: true,
+  version: true,
+  lastEditedBy: true,
+});
+
+export const insertDocumentVersionSchema = createInsertSchema(documentVersions).pick({
+  documentId: true,
+  version: true,
+  content: true,
+  changes: true,
+  editedBy: true,
+  comment: true,
+});
+
+export const insertDocumentCommentSchema = createInsertSchema(documentComments).pick({
+  documentId: true,
+  userId: true,
+  content: true,
+  position: true,
+  parentId: true,
+  isResolved: true,
+});
+
+export const insertDocumentSharingSchema = createInsertSchema(documentSharing).pick({
+  documentId: true,
+  sharedWith: true,
+  permission: true,
+  shareToken: true,
+  isPublic: true,
+  expiresAt: true,
+  createdBy: true,
+});
+
+export const insertDocumentTemplateSchema = createInsertSchema(documentTemplates).pick({
+  name: true,
+  description: true,
+  documentType: true,
+  category: true,
+  thumbnail: true,
+  content: true,
+  settings: true,
+  isPublic: true,
+  isOfficial: true,
+  createdBy: true,
+});
+
 // Types
 export type InsertInstitution = z.infer<typeof insertInstitutionSchema>;
 export type Institution = typeof institutions.$inferSelect;
@@ -857,3 +1128,38 @@ export type RedisClusterConfig = typeof redisClusterConfig.$inferSelect;
 
 export type InsertLoadBalancerConfig = z.infer<typeof insertLoadBalancerConfigSchema>;
 export type LoadBalancerConfig = typeof loadBalancerConfig.$inferSelect;
+
+// Authentication types
+export type InsertAuthProvider = z.infer<typeof insertAuthProviderSchema>;
+export type AuthProvider = typeof authProviders.$inferSelect;
+
+export type InsertTwoFactorAuth = z.infer<typeof insertTwoFactorAuthSchema>;
+export type TwoFactorAuth = typeof twoFactorAuth.$inferSelect;
+
+export type InsertEmailVerification = z.infer<typeof insertEmailVerificationSchema>;
+export type EmailVerification = typeof emailVerifications.$inferSelect;
+
+export type InsertPhoneVerification = z.infer<typeof insertPhoneVerificationSchema>;
+export type PhoneVerification = typeof phoneVerifications.$inferSelect;
+
+// Drive storage types
+export type InsertDriveStorage = z.infer<typeof insertDriveStorageSchema>;
+export type DriveStorage = typeof driveStorage.$inferSelect;
+
+export type InsertDriveFile = z.infer<typeof insertDriveFileSchema>;
+export type DriveFile = typeof driveFiles.$inferSelect;
+
+export type InsertOfficeDocument = z.infer<typeof insertOfficeDocumentSchema>;
+export type OfficeDocument = typeof officeDocuments.$inferSelect;
+
+export type InsertDocumentVersion = z.infer<typeof insertDocumentVersionSchema>;
+export type DocumentVersion = typeof documentVersions.$inferSelect;
+
+export type InsertDocumentComment = z.infer<typeof insertDocumentCommentSchema>;
+export type DocumentComment = typeof documentComments.$inferSelect;
+
+export type InsertDocumentSharing = z.infer<typeof insertDocumentSharingSchema>;
+export type DocumentSharing = typeof documentSharing.$inferSelect;
+
+export type InsertDocumentTemplate = z.infer<typeof insertDocumentTemplateSchema>;
+export type DocumentTemplate = typeof documentTemplates.$inferSelect;

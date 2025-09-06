@@ -16,6 +16,8 @@ import {
 } from "@shared/schema";
 import { setupAuth } from "./auth";
 import classroomRoutes from "./routes/classroom";
+import authRoutes from "./routes/auth";
+import driveRoutes from "./routes/drive";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication
@@ -23,6 +25,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register classroom routes
   app.use('/api/classroom', classroomRoutes);
+  
+  // Register authentication routes
+  app.use('/api/auth', authRoutes);
+  
+  // Register drive routes
+  app.use('/api/drive', driveRoutes);
   
   const httpServer = createServer(app);
   
