@@ -181,35 +181,38 @@ export default function DashboardPage() {
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Apps</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <Link href="/apps">
-              <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+              <Card className="hover:shadow-lg transition-all duration-300 cursor-pointer group hover:-translate-y-1 animate-in fade-in-0 slide-in-from-bottom-4" 
+                    style={{ animationDelay: '100ms' }}>
                 <CardHeader>
-                  <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center mb-4">
-                    <FileText className="h-6 w-6 text-white" />
+                  <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+                    <FileText className="h-6 w-6 text-white group-hover:scale-110 transition-transform duration-300" />
                   </div>
-                  <CardTitle className="text-lg">All Apps</CardTitle>
-                  <CardDescription>Access all productivity tools and applications</CardDescription>
+                  <CardTitle className="text-lg group-hover:text-blue-600 transition-colors duration-300">All Apps</CardTitle>
+                  <CardDescription className="group-hover:text-gray-600 transition-colors duration-300">Access all productivity tools and applications</CardDescription>
                 </CardHeader>
               </Card>
             </Link>
             <Link href="/apps/drive">
-              <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+              <Card className="hover:shadow-lg transition-all duration-300 cursor-pointer group hover:-translate-y-1 animate-in fade-in-0 slide-in-from-bottom-4" 
+                    style={{ animationDelay: '200ms' }}>
                 <CardHeader>
-                  <div className="w-12 h-12 bg-indigo-500 rounded-lg flex items-center justify-center mb-4">
-                    <Folder className="h-6 w-6 text-white" />
+                  <div className="w-12 h-12 bg-indigo-500 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+                    <Folder className="h-6 w-6 text-white group-hover:scale-110 transition-transform duration-300" />
                   </div>
-                  <CardTitle className="text-lg">Drive</CardTitle>
-                  <CardDescription>Manage your files and folders</CardDescription>
+                  <CardTitle className="text-lg group-hover:text-indigo-600 transition-colors duration-300">Drive</CardTitle>
+                  <CardDescription className="group-hover:text-gray-600 transition-colors duration-300">Manage your files and folders</CardDescription>
                 </CardHeader>
               </Card>
             </Link>
             <Link href="/apps/documents">
-              <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+              <Card className="hover:shadow-lg transition-all duration-300 cursor-pointer group hover:-translate-y-1 animate-in fade-in-0 slide-in-from-bottom-4" 
+                    style={{ animationDelay: '300ms' }}>
                 <CardHeader>
-                  <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center mb-4">
-                    <FileText className="h-6 w-6 text-white" />
+                  <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+                    <FileText className="h-6 w-6 text-white group-hover:scale-110 transition-transform duration-300" />
                   </div>
-                  <CardTitle className="text-lg">Documents</CardTitle>
-                  <CardDescription>Create and edit text documents</CardDescription>
+                  <CardTitle className="text-lg group-hover:text-blue-600 transition-colors duration-300">Documents</CardTitle>
+                  <CardDescription className="group-hover:text-gray-600 transition-colors duration-300">Create and edit text documents</CardDescription>
                 </CardHeader>
               </Card>
             </Link>

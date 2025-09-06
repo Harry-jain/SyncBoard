@@ -222,11 +222,13 @@ export default function AppsPage() {
         <div className="mb-8">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Categories</h3>
           <div className="flex flex-wrap gap-2">
-            {categories.map((category) => (
+            {categories.map((category, index) => (
               <Button
                 key={category}
                 variant={selectedCategory === category ? 'default' : 'outline'}
                 onClick={() => setSelectedCategory(category)}
+                className="hover:scale-105 transition-all duration-200 animate-in fade-in-0 slide-in-from-left-4"
+                style={{ animationDelay: `${index * 50}ms` }}
               >
                 {category}
               </Button>
@@ -238,15 +240,18 @@ export default function AppsPage() {
         <div className="mb-8">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
           <div className="flex space-x-4">
-            <Button>
+            <Button className="hover:scale-105 transition-all duration-200 animate-in fade-in-0 slide-in-from-bottom-4" 
+                    style={{ animationDelay: '200ms' }}>
               <Plus className="h-4 w-4 mr-2" />
               New File
             </Button>
-            <Button variant="outline">
+            <Button variant="outline" className="hover:scale-105 transition-all duration-200 animate-in fade-in-0 slide-in-from-bottom-4" 
+                    style={{ animationDelay: '300ms' }}>
               <Upload className="h-4 w-4 mr-2" />
               Upload Files
             </Button>
-            <Button variant="outline">
+            <Button variant="outline" className="hover:scale-105 transition-all duration-200 animate-in fade-in-0 slide-in-from-bottom-4" 
+                    style={{ animationDelay: '400ms' }}>
               <Folder className="h-4 w-4 mr-2" />
               New Folder
             </Button>
@@ -259,22 +264,23 @@ export default function AppsPage() {
             {selectedCategory} Apps
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredApps.map((app) => (
+            {filteredApps.map((app, index) => (
               <Link key={app.name} href={app.href}>
-                <Card className="hover:shadow-lg transition-shadow cursor-pointer group">
+                <Card className="hover:shadow-lg transition-all duration-300 cursor-pointer group hover:-translate-y-1 animate-in fade-in-0 slide-in-from-bottom-4" 
+                      style={{ animationDelay: `${index * 100}ms` }}>
                   <CardHeader className="pb-4">
-                    <div className={`w-16 h-16 ${app.color} rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-                      <app.icon className="h-8 w-8 text-white" />
+                    <div className={`w-16 h-16 ${app.color} rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-lg group-hover:shadow-xl`}>
+                      <app.icon className="h-8 w-8 text-white group-hover:scale-110 transition-transform duration-300" />
                     </div>
-                    <CardTitle className="text-lg">{app.name}</CardTitle>
-                    <CardDescription className="text-sm">{app.description}</CardDescription>
+                    <CardTitle className="text-lg group-hover:text-blue-600 transition-colors duration-300">{app.name}</CardTitle>
+                    <CardDescription className="text-sm group-hover:text-gray-600 transition-colors duration-300">{app.description}</CardDescription>
                   </CardHeader>
                   <CardContent className="pt-0">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                      <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors duration-300">
                         {app.category}
                       </span>
-                      <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:translate-x-1">
                         Open →
                       </Button>
                     </div>
