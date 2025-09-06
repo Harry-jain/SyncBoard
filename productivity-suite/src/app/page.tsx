@@ -16,6 +16,9 @@ export default function HomePage() {
               </h1>
             </div>
             <div className="flex items-center space-x-4">
+              <Link href="/apps">
+                <Button variant="outline">Apps</Button>
+              </Link>
               <Link href="/auth/signin">
                 <Button variant="outline">Sign In</Button>
               </Link>
